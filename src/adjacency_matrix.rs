@@ -1,5 +1,4 @@
 use std::cmp::PartialEq;
-use num::traits::cast::FromPrimitive;
 
 use super::graph::Graph;
 
@@ -9,10 +8,10 @@ pub struct Vertex<T: PartialEq> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum Weight<T>
-where T: FromPrimitive + Clone + PartialEq
+enum Weight<W>
+where W: Clone + PartialEq
 {
-    Real(T),
+    Real(W),
     NonExist,
 }
 
@@ -35,33 +34,33 @@ where T: FromPrimitive + Clone + PartialEq
 /// For each function, there is a note for the time complexity
 /// where n and m denotes # of nodes, # of edges respectively.
 #[derive(Debug)]
-pub struct AdjacencyMatrix<T, U>
+pub struct AdjacencyMatrix<T, W>
 where
     T: PartialEq,
-    U: FromPrimitive + Clone + PartialEq,
+    W: Clone + PartialEq,
 {
-    matrix: Vec<Vec<Weight<U>>>,
+    matrix: Vec<Vec<Weight<W>>>,
     pub vertices: Vec<Vertex<T>>,
 }
 
-impl<T, U> AdjacencyMatrix<T, U>
+impl<T, W> AdjacencyMatrix<T, W>
 where
     T: PartialEq,
-    U: FromPrimitive + Clone + PartialEq,
+    W: Clone + PartialEq,
 {
     pub fn new() -> Self {
         AdjacencyMatrix { matrix: vec![], vertices: vec![] }
     }
 }
 
-impl<T, U> Graph for AdjacencyMatrix<T, U>
+impl<T, W> Graph<W> for AdjacencyMatrix<T, W>
 where
     T: PartialEq,
-    U: FromPrimitive + Clone + PartialEq,
+    W: Clone + PartialEq,
 {
     type Vertex = Vertex<T>;
     type VertexValue = T;
-    type Edge = (usize, usize, U);
+    type Edge = (usize, usize, W);
     type EdgeNodes = (usize, usize);
 
     /// Add a vertex to the graph.
@@ -210,7 +209,7 @@ where
     /// assert_eq!(adj_matrix.neighbors(1).len(), 1);
     /// assert_eq!(adj_matrix.neighbors(2).len(), 0);
     /// ```
-    fn neighbors(&self, vertex_index: usize) -> Vec<&Self::Vertex> {
+    fn neighbors(&self, vertex_index: usize) -> Vec<(&Self::Vertex, &W)> {
         let indices = self
             .matrix[vertex_index]
             .iter()
@@ -218,7 +217,15 @@ where
             .filter(|&(_, v)| v != &Weight::NonExist)
             .map(|(index, _)| index)
             .collect::<Vec<usize>>();
-        indices.iter().map(|&index| &self.vertices[index]).collect::<Vec<&Self::Vertex>>()
+        indices.iter()
+            .map(|&index| -> (&Self::Vertex, &W) {
+                let weight = &self.matrix[vertex_index][index];
+                match weight {
+                    Weight::Real(weight) => return (&self.vertices[index], weight),
+                    _ => panic!("Something unexpected")
+                }
+            })
+            .collect::<Vec<(&Self::Vertex, &W)>>()
     }
 
     /// Returns vertex if found, otherwise returns None.

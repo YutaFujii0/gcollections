@@ -2,7 +2,7 @@
 /// 
 /// A common behavior that a graph have.
 
-pub trait Graph {
+pub trait Graph<W> {
     type Vertex;
     type VertexValue;
     type Edge;
@@ -16,7 +16,9 @@ pub trait Graph {
 
     fn remove_edge(&mut self, edge: Self::EdgeNodes) -> Option<Self::Edge>;
 
-    fn neighbors(&self, vertex_id: usize) -> Vec<&Self::Vertex>;
+    fn neighbors(&self, vertex_id: usize) -> Vec<(&Self::Vertex, &W)>;
+    // fn neighbors(&self, vertex_id: usize) -> Vec<&Self::Vertex>;
+    // fn neighbors(&self, vertex_id: usize) -> Vec<&Self::Vertex>;
 
     fn find_vertex(&self, vertex: Self::VertexValue) -> Option<&Self::Vertex>;
 }

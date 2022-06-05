@@ -1,10 +1,10 @@
 use super::graph::Graph;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Edge<T> {
+pub struct Edge<W> {
     pub left: usize,
     pub right: usize,
-    pub weight: T,
+    pub weight: W,
 }
 
 /// Edge List representation of a graph.
@@ -27,11 +27,11 @@ pub struct Edge<T> {
 /// For each function, there is a note for the time complexity
 /// where n and m denotes # of nodes, # of edges respectively.
 #[derive(Debug)]
-pub struct EdgeList<T> {
-    edges: Vec<Edge<T>>,
+pub struct EdgeList<W> {
+    edges: Vec<Edge<W>>,
 }
 
-impl<T> EdgeList<T> {
+impl<W> EdgeList<W> {
     pub fn new() -> Self {
         EdgeList { edges: vec![] }
     }
@@ -41,10 +41,10 @@ impl<T> EdgeList<T> {
     }
 }
 
-impl<T> Graph for EdgeList<T> {
+impl<W> Graph<W> for EdgeList<W> {
     type Vertex = usize;
     type VertexValue = usize;
-    type Edge = Edge<T>;
+    type Edge = Edge<W>;
     type EdgeNodes = (Self::Vertex, Self::Vertex);
 
     /// There is no implementation of add_vertex for Edge List graph representation.
@@ -176,15 +176,21 @@ impl<T> Graph for EdgeList<T> {
     /// edge_list.add_edge(edge2);
     /// edge_list.add_edge(edge3);
     /// 
-    /// assert_eq!(edge_list.neighbors(1), vec![&2, &3, &4]);
-    /// assert_eq!(edge_list.neighbors(2), vec![&1]);
-    /// assert_eq!(edge_list.neighbors(5), Vec::<&usize>::new());
+    /// assert_eq!(edge_list.neighbors(1), vec![(&2, &10), (&3, &10), (&4, &10)]);
+    /// assert_eq!(edge_list.neighbors(2), vec![(&1, &10)]);
+    /// assert_eq!(edge_list.neighbors(5), Vec::<(&usize, &i32)>::new());
     /// ```
-    fn neighbors(&self, vertex_id: usize) -> Vec<&Self::Vertex> {
+    fn neighbors(&self, vertex_id: usize) -> Vec<(&Self::Vertex, &W)> {
         self.edges.iter()
             .filter(|&edge| edge.left == vertex_id || edge.right == vertex_id)
-            .map(|edge| if edge.left == vertex_id { &edge.right } else { &edge.left })
-            .collect::<Vec<&Self::Vertex>>()
+            .map(|edge| -> (&Self::Vertex, &W) {
+                if edge.left == vertex_id {
+                    return (&edge.right, &edge.weight)
+                } else {
+                    return (&edge.left, &edge.weight)
+                }
+            })
+            .collect::<Vec<(&Self::Vertex, &W)>>()
     }
 
     /// Returns vertex if found, otherwise returns None.
