@@ -181,12 +181,10 @@ where
         }
     }
 
-    /// only neighbor to which there exists an edge
     /// Returns all neighbor nodes.
     /// 
-    /// This function assumes that a vertex j is a neighbor of i
-    /// if there is a edge from i to j.
-    /// The opposite case (edge j -> i) does not apply.
+    /// This function assumes two nodes are neighbors 
+    /// if there's an edge between them regardless of its direction.
     /// 
     /// This operation should compute in *O*(*n*) time.
     /// 
@@ -206,10 +204,83 @@ where
     /// adj_matrix.add_edge((1, 2, 10));
     /// 
     /// assert_eq!(adj_matrix.neighbors(0).len(), 2);
-    /// assert_eq!(adj_matrix.neighbors(1).len(), 1);
-    /// assert_eq!(adj_matrix.neighbors(2).len(), 0);
+    /// assert_eq!(adj_matrix.neighbors(1).len(), 2);
+    /// assert_eq!(adj_matrix.neighbors(2).len(), 2);
     /// ```
     fn neighbors(&self, vertex_index: usize) -> Vec<(&Self::Vertex, &W)> {
+        let mut from = self.neighbors_from(vertex_index);
+        let mut to = self.neighbors_to(vertex_index);
+        from.append(&mut to);
+        return from
+    }
+    
+    /// Returns neighbor nodes from those node an edge incident to the node.
+    /// Returns all neighbor nodes.
+    /// 
+    /// This operation should compute in *O*(*n*) time.
+    /// 
+    /// # Examples
+    /// ```
+    /// use gcollections::adjacency_matrix::{AdjacencyMatrix};
+    /// use gcollections::Graph;
+    /// 
+    /// let mut adj_matrix = AdjacencyMatrix::<String, i32>::new();
+    /// 
+    /// adj_matrix.add_vertex(String::from("Seatle"));
+    /// adj_matrix.add_vertex(String::from("Boston"));
+    /// adj_matrix.add_vertex(String::from("New York"));
+    /// 
+    /// adj_matrix.add_edge((0, 1, 1000));
+    /// adj_matrix.add_edge((0, 2, 1200));
+    /// adj_matrix.add_edge((1, 2, 10));
+    /// 
+    /// assert_eq!(adj_matrix.neighbors_to(0).len(), 0);
+    /// assert_eq!(adj_matrix.neighbors_to(1).len(), 1);
+    /// assert_eq!(adj_matrix.neighbors_to(2).len(), 2);
+    /// ```
+    fn neighbors_to(&self, vertex_index: usize) -> Vec<(&Self::Vertex, &W)> {
+        let indices = self
+            .matrix
+            .iter()
+            .enumerate()
+            .filter(|&(_, v)| v[vertex_index] != Weight::NonExist)
+            .map(|(index, _)| index)
+            .collect::<Vec<usize>>();
+        indices.iter()
+            .map(|&index| -> (&Self::Vertex, &W) {
+                let weight = &self.matrix[index][vertex_index];
+                match weight {
+                    Weight::Real(weight) => return (&self.vertices[index], weight),
+                    _ => panic!("Something unexpected")
+                }
+            })
+            .collect::<Vec<(&Self::Vertex, &W)>>()
+    }
+
+    /// Returns neighbor nodes reachable from the node.
+    /// 
+    /// This operation should compute in *O*(*n*) time.
+    /// 
+    /// # Examples
+    /// ```
+    /// use gcollections::adjacency_matrix::{AdjacencyMatrix};
+    /// use gcollections::Graph;
+    /// 
+    /// let mut adj_matrix = AdjacencyMatrix::<String, i32>::new();
+    /// 
+    /// adj_matrix.add_vertex(String::from("Seatle"));
+    /// adj_matrix.add_vertex(String::from("Boston"));
+    /// adj_matrix.add_vertex(String::from("New York"));
+    /// 
+    /// adj_matrix.add_edge((0, 1, 1000));
+    /// adj_matrix.add_edge((0, 2, 1200));
+    /// adj_matrix.add_edge((1, 2, 10));
+    /// 
+    /// assert_eq!(adj_matrix.neighbors_from(0).len(), 2);
+    /// assert_eq!(adj_matrix.neighbors_from(1).len(), 1);
+    /// assert_eq!(adj_matrix.neighbors_from(2).len(), 0);
+    /// ```
+    fn neighbors_from(&self, vertex_index: usize) -> Vec<(&Self::Vertex, &W)> {
         let indices = self
             .matrix[vertex_index]
             .iter()

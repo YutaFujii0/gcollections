@@ -193,6 +193,66 @@ impl<W> Graph<W> for EdgeList<W> {
             .collect::<Vec<(&Self::Vertex, &W)>>()
     }
 
+    /// Returns neighbor nodes from those node an edge incident to the node.
+    /// 
+    /// This operation should compute in *O*(*m*) time.
+    /// 
+    /// 
+    /// # Examples
+    /// ```
+    /// use gcollections::edge_list::{Edge, EdgeList};
+    /// use gcollections::Graph;
+    /// 
+    /// let mut edge_list = EdgeList::<i32>::new();
+    /// 
+    /// let edge1 = Edge { left: 1, right: 2, weight: 10 };
+    /// let edge2 = Edge { left: 1, right: 3, weight: 10 };
+    /// let edge3 = Edge { left: 1, right: 4, weight: 10 };
+    /// edge_list.add_edge(edge1);
+    /// edge_list.add_edge(edge2);
+    /// edge_list.add_edge(edge3);
+    /// 
+    /// assert_eq!(edge_list.neighbors_to(1), Vec::<(&usize, &i32)>::new());
+    /// assert_eq!(edge_list.neighbors_to(2), vec![(&1, &10)]);
+    /// assert_eq!(edge_list.neighbors_to(5), Vec::<(&usize, &i32)>::new());
+    /// ```
+    fn neighbors_to(&self, vertex_id: usize) -> Vec<(&Self::Vertex, &W)> {
+        self.edges.iter()
+            .filter(|&edge| edge.right == vertex_id)
+            .map(|edge| (&edge.left, &edge.weight))
+            .collect::<Vec<(&Self::Vertex, &W)>>()
+    }
+
+    /// Returns neighbor nodes reachable from the node.
+    /// 
+    /// This operation should compute in *O*(*m*) time.
+    /// 
+    /// 
+    /// # Examples
+    /// ```
+    /// use gcollections::edge_list::{Edge, EdgeList};
+    /// use gcollections::Graph;
+    /// 
+    /// let mut edge_list = EdgeList::<i32>::new();
+    /// 
+    /// let edge1 = Edge { left: 1, right: 2, weight: 10 };
+    /// let edge2 = Edge { left: 1, right: 3, weight: 10 };
+    /// let edge3 = Edge { left: 1, right: 4, weight: 10 };
+    /// edge_list.add_edge(edge1);
+    /// edge_list.add_edge(edge2);
+    /// edge_list.add_edge(edge3);
+    /// 
+    /// assert_eq!(edge_list.neighbors_from(1), vec![(&2, &10), (&3, &10), (&4, &10)]);
+    /// assert_eq!(edge_list.neighbors_from(2), Vec::<(&usize, &i32)>::new());
+    /// assert_eq!(edge_list.neighbors_from(5), Vec::<(&usize, &i32)>::new());
+    /// ```
+    fn neighbors_from(&self, vertex_id: usize) -> Vec<(&Self::Vertex, &W)> {
+        self.edges.iter()
+            .filter(|&edge| edge.left == vertex_id)
+            .map(|edge| (&edge.right, &edge.weight))
+            .collect::<Vec<(&Self::Vertex, &W)>>()
+    }
+
     /// Returns vertex if found, otherwise returns None.
     /// 
     /// This operation should compute in *O*(*m*) time.

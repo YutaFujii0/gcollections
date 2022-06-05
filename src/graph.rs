@@ -17,8 +17,10 @@ pub trait Graph<W> {
     fn remove_edge(&mut self, edge: Self::EdgeNodes) -> Option<Self::Edge>;
 
     fn neighbors(&self, vertex_id: usize) -> Vec<(&Self::Vertex, &W)>;
-    // fn neighbors(&self, vertex_id: usize) -> Vec<&Self::Vertex>;
-    // fn neighbors(&self, vertex_id: usize) -> Vec<&Self::Vertex>;
+
+    fn neighbors_to(&self, vertex_id: usize) -> Vec<(&Self::Vertex, &W)>;
+
+    fn neighbors_from(&self, vertex_id: usize) -> Vec<(&Self::Vertex, &W)>;
 
     fn find_vertex(&self, vertex: Self::VertexValue) -> Option<&Self::Vertex>;
 }
